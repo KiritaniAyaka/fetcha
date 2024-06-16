@@ -1,6 +1,6 @@
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { http } from 'msw'
 import { setupServer } from 'msw/node'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FetchaBuilder } from '@/index'
 
 type Param = Parameters<typeof fetch>
@@ -26,7 +26,7 @@ describe('should', () => {
 
 	afterEach(() => {
 		builder = null
-		return server.resetHandlers()
+		server.resetHandlers()
 	})
 
 	afterAll(() => server.close())
@@ -81,5 +81,34 @@ describe('should', () => {
 
 		expect(mock).toHaveBeenCalled()
 		expect(result).toBe('Hello!')
+	})
+})
+
+describe('multiple build should', () => {
+	beforeAll(() => {
+		server.listen({ onUnhandledRequest: 'error' })
+	})
+
+	afterEach(() => server.resetHandlers())
+
+	afterAll(() => server.close())
+
+	it('not effect previous build', async () => {
+		const interceptorA = vi.fn().mockImplementation((url, init) => [url, init])
+		const interceptorB = vi.fn().mockImplementation((url, init) => [url, init])
+
+		const builder = new FetchaBuilder().useRequestInterceptor(interceptorA)
+		const fetchaClientA = builder.build()
+		const fetchaClientB = builder.useRequestInterceptor(interceptorB).build()
+
+		await fetchaClientA('https://example.com/hello')
+
+		expect(interceptorA).toBeCalledTimes(1)
+		expect(interceptorB).toBeCalledTimes(0)
+
+		await fetchaClientB('https://example.com/hello')
+
+		expect(interceptorA).toBeCalledTimes(2)
+		expect(interceptorB).toBeCalledTimes(1)
 	})
 })
