@@ -21,14 +21,25 @@ jobs:
 
       - name: Install pnpm
         uses: pnpm/action-setup@v3
+        with:
+          version: 9.1.x
 
       - name: Set node
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
+          registry-url: 'https://registry.npmjs.org'
 
-      - run: npx changelogithub
+      - name: Publish to jsr
+        run: npx jsr publish
+
+      - name: Install Dependencies
+        run: pnpm i
+
+      - name: Build
+        run: pnpm build
+
+      - name: Publish to npm
+        run: pnpm publish --access public --no-git-checks
         env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-
-      - run: npx jsr publish
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
