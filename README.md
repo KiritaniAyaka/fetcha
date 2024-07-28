@@ -10,6 +10,25 @@
 
 A minimal fetch client wrapper with interceptor.
 
+## Examples
+
+```ts
+const baseUrl = 'http://localhost:8000'
+
+const fetcha = new FetchaBuilder()
+	.useRequestInterceptor((info, init) => { // base url example
+		return [`${baseUrl}${info}`, init]
+	})
+	.useResponseInterceptor(async (response) => { // interceptor could be async
+		if (!response.ok())
+			return toast('Some thing went wrong')
+		return await response.json()
+	})
+	.build() // build a fetcha client
+
+fetcha('/api/hello') // use it like fetch
+```
+
 ## License
 
 [MIT](./LICENSE) License © 2024 [Kiritani Ayaka](https://github.com/KiritaniAyaka)
